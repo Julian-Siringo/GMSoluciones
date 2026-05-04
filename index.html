@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monoti — Tu asistente de monotributo</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0e17;
+    --surface: #1a1929;
+    --surface2: #222136;
+    --border: #2e2d45;
+    --accent: #ff6b35;
+    --accent2: #7c5cbf;
+    --green: #3ddc84;
+    --yellow: #ffd166;
+    --red: #ef476f;
+    --text: #fffffe;
+    --muted: #a7a9be;
+    --radius: 18px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background blob */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -200px; right: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(124,92,191,0.18) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -150px; left: -150px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(255,107,53,0.13) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 16px 120px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 0 20px;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 26px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+  }
+
+  .badge-plan {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* GREETING */
+  .greeting {
+    padding: 8px 0 24px;
+  }
+  .greeting h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .greeting h1 span { color: var(--accent); }
+  .greeting p {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 6px;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 14px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--accent2); }
+
+  .card-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+
+  /* INGRESO INPUT */
+  .ingreso-section { margin-bottom: 20px; }
+
+  .input-group {
+    display: flex;
+    align-items: center;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    gap: 8px;
+    transition: border-color 0.2s;
+  }
+  .input-group:focus-within {
+    border-color: var(--accent);
+  }
+  .input-group .prefix {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .input-group input {
+    background: none;
+    border: none;
+    outline: none;
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    width: 100%;
+    caret-color: var(--accent);
+  }
+  .input-group input::placeholder { color: var(--border); }
+
+  .input-hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+    padding-left: 4px;
+  }
+
+  /* DESGLOSE */
+  .desglose {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .desglose-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 13px 16px;
+    border-radius: 12px;
+    background: var(--surface2);
+  }
+
+  .desglose-left { display: flex; align-items: center; gap: 10px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .dot-green { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .dot-yellow { background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+  .dot-red { background: var(--red); box-shadow: 0 0 8px var(--red); }
+
+  .desglose-label { font-size: 13px; color: var(--muted); }
+  .desglose-label strong { display: block; font-size: 14px; color: var(--text); font-weight: 500; }
+
+  .desglose-value {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .desglose-value.green { color: var(--green); }
+  .desglose-value.yellow { color: var(--yellow); }
+  .desglose-value.red { color: var(--red); }
+
+  /* BARRA VISUAL */
+  .barra-container {
+    margin: 16px 0 4px;
+  }
+  .barra {
+    height: 10px;
+    border-radius: 99px;
+    background: var(--border);
+    overflow: hidden;
+    display: flex;
+    gap: 2px;
+  }
+  .barra-seg {
+    height: 100%;
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    border-radius: 99px;
+  }
+  .barra-legend {
+    display: flex;
+    gap: 14px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* CONSEJO */
+  .consejo {
+    background: linear-gradient(135deg, rgba(255,107,53,0.12), rgba(124,92,191,0.12));
+    border: 1px solid rgba(255,107,53,0.25);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 14px;
+  }
+  .consejo-emoji { font-size: 22px; margin-bottom: 6px; }
+  .consejo-texto {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+  .consejo-texto strong { color: var(--accent); }
+
+  /* PAGOS */
+  .pago-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .pago-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--surface2);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .pago-item:hover { background: var(--border); }
+
+  .pago-left { display: flex; align-items: center; gap: 12px; }
+  .pago-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .pago-icon.afip { background: rgba(255,107,53,0.15); }
+  .pago-icon.iibb { background: rgba(124,92,191,0.15); }
+  .pago-icon.obra { background: rgba(61,220,132,0.15); }
+
+  .pago-name { font-size: 14px; font-weight: 500; }
+  .pago-fecha { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .pago-right { text-align: right; }
+  .pago-dias {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .pago-dias.urgente { background: rgba(239,71,111,0.2); color: var(--red); }
+  .pago-dias.proximo { background: rgba(255,209,102,0.2); color: var(--yellow); }
+  .pago-dias.ok { background: rgba(61,220,132,0.15); color: var(--green); }
+
+  .pago-monto { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* CATEGORÍA */
+  .cat-selector {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .cat-btn {
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .cat-btn:hover { border-color: var(--accent2); color: var(--text); }
+  .cat-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    font-weight: 600;
+  }
+
+  /* HISTORIAL */
+  .historial { display: flex; flex-direction: column; gap: 8px; }
+  .hist-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .hist-item:last-child { border-bottom: none; }
+  .hist-date { font-size: 12px; color: var(--muted); }
+  .hist-desc { font-size: 14px; font-weight: 500; }
+  .hist-amount { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--green); }
+
+  /* ALERTA TOP */
+  .alerta-banner {
+    background: rgba(239,71,111,0.12);
+    border: 1px solid rgba(239,71,111,0.3);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .alerta-banner:hover { background: rgba(239,71,111,0.18); }
+  .alerta-banner.hidden { display: none; }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    display: flex;
+    background: rgba(15,14,23,0.92);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    padding: 10px 0 20px;
+    z-index: 100;
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 8px 0;
+    transition: color 0.15s;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+    background: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .nav-item.active { color: var(--accent); }
+  .nav-icon { font-size: 22px; }
+
+  /* SECTION */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* PRO CARD */
+  .pro-card {
+    background: linear-gradient(135deg, var(--accent2) 0%, #4a3080 100%);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .pro-card::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+  }
+  .pro-card-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 8px;
+  }
+  .pro-card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .pro-card-desc { font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.4; }
+  .pro-card-btn {
+    margin-top: 16px;
+    padding: 10px 20px;
+    background: white;
+    color: var(--accent2);
+    border: none;
+    border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  /* FEATURE LIST */
+  .feature-list { display: flex; flex-direction: column; gap: 10px; }
+  .feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--surface2);
+    border-radius: 12px;
+  }
+  .feature-icon { font-size: 20px; }
+  .feature-text { font-size: 14px; }
+  .feature-text small { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .feature-tag {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .feature-tag.gratis { background: rgba(61,220,132,0.15); color: var(--green); }
+  .feature-tag.pro { background: rgba(124,92,191,0.2); color: #b39ddb; }
+
+  /* TOGGLE PAGO */
+  .toggle-pago {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .toggle-pago input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  /* ANIMACIÓN ENTRADA */
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .card, .consejo, .alerta-banner, .pro-card {
+    animation: slideUp 0.4s ease backwards;
+  }
+  .card:nth-child(1) { animation-delay: 0.05s; }
+  .card:nth-child(2) { animation-delay: 0.1s; }
+  .card:nth-child(3) { animation-delay: 0.15s; }
+
+  /* NÚMERO GRANDE */
+  .big-number {
+    font-family: 'Syne', sans-serif;
+    font-size: 38px;
+    font-weight: 800;
+    line-height: 1;
+    margin: 8px 0;
+  }
+  .big-number.green { color: var(--green); }
+  .big-number.yellow { color: var(--yellow); }
+
+  .section-divider {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin: 20px 0 12px;
+  }
+
+  .pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(61,220,132,0.15);
+    color: var(--green);
+    margin-left: 8px;
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    padding: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    transform: translateY(30px);
+    transition: transform 0.25s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .modal-close {
+    float: right;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 20px;
+    cursor: pointer;
+    margin-top: -4px;
+  }
+  .modal p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .modal-btn {
+    width: 100%;
+    margin-top: 18px;
+    padding: 14px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  /* ESTIMACIÓN BADGE */
+  .estimacion-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    background: rgba(255,209,102,0.12);
+    border: 1px solid rgba(255,209,102,0.3);
+    color: var(--yellow);
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* NOTA DISCLAIMER */
+  .nota-calculo {
+    margin-top: 14px;
+    padding: 11px 14px;
+    border-radius: 10px;
+    background: rgba(167,169,190,0.07);
+    border: 1px solid rgba(167,169,190,0.15);
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .nota-calculo strong { color: var(--text); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="logo">Monoti</div>
+    <div class="badge-plan">Gratis</div>
+  </header>
+
+  <!-- SECCIÓN INICIO -->
+  <div id="sec-inicio" class="section active">
+    <div class="greeting">
+      <h1>Hola, <span>monotributista</span> 👋</h1>
+      <p>Todo bajo control. Veamos cómo estás hoy.</p>
+    </div>
+
+    <div id="alerta-pago" class="alerta-banner" onclick="irAPagos()">
+      <span>🔴</span>
+      <span>Tenés un pago en <strong>3 días</strong>. No te olvides del AFIP.</span>
+      <span style="margin-left:auto; color:var(--muted)">→</span>
+    </div>
+
+    <!-- INGRESO DEL MES -->
+    <div class="card">
+      <div class="card-label">¿Cuánto cobraste este mes?</div>
+      <div class="card-title">Ingresá tu cobro 💰</div>
+      <div class="input-group">
+        <span class="prefix">$</span>
+        <input type="number" id="monto-input" placeholder="0" oninput="calcular()" min="0">
+      </div>
+      <div class="input-hint">Podés poner el total o ir sumando cobro a cobro</div>
+    </div>
+
+    <!-- DESGLOSE -->
+    <div class="card" id="card-desglose" style="display:none">
+      <div class="card-label">Así se divide tu plata</div>
+      <div class="card-title">Tu desglose del mes <span class="estimacion-badge">⚠️ Estimación</span></div>
+
+      <div class="barra-container">
+        <div class="barra">
+          <div class="barra-seg" id="bar-tuya" style="background:var(--green); width:0%"></div>
+          <div class="barra-seg" id="bar-afip" style="background:var(--yellow); width:0%"></div>
+          <div class="barra-seg" id="bar-iibb" style="background:var(--red); width:0%"></div>
+        </div>
+        <div class="barra-legend">
+          <span class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>Tuya</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span>AFIP</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--red)"></span>Ing. Brutos</span>
+        </div>
+      </div>
+
+      <div class="desglose">
+        <div class="desglose-item">
+          <div class="desglose-left">
+            <div class="dot dot-green"></div>
+            <div class="desglose-label">
+              <strong>Es tuya 🎉</strong>
+              Podés gastarlo tranquilo
+            </div>
+          </div>
+          <div class="desglose-value green" id="val-tuya">$0</div>
+        </div>
+        <div class="desglose-item">
+          <div class="desglose-left">
+            <div class="dot dot-yellow"></div>
+            <div class="desglose-label">
+              <strong>Guardá para AFIP 📦</strong>
+              Monotributo + obra social
+            </div>
+          </div>
+          <div class="desglose-value yellow" id="val-afip">$0</div>
+        </div>
+        <div class="desglose-item">
+          <div class="desglose-left">
+            <div class="dot dot-red"></div>
+            <div class="desglose-label">
+              <strong>Ing. Brutos 🏢</strong>
+              Según tu provincia (aprox.)
+            </div>
+          </div>
+          <div class="desglose-value red" id="val-iibb">$0</div>
+        </div>
+      </div>
+
+      <div class="nota-calculo">
+        💡 <strong>Estimación aproximada.</strong> El cálculo usa la cuota fija de tu categoría para AFIP y un 3% estándar para Ingresos Brutos. El IIBB real varía por provincia y actividad. Consultá con tu contador para valores exactos.
+      </div>
+    </div>
+
+    <!-- CONSEJO -->
+    <div class="consejo" id="consejo-box" style="display:none">
+      <div class="consejo-emoji">💡</div>
+      <div class="consejo-texto" id="consejo-texto">—</div>
+    </div>
+
+    <!-- CATEGORÍA -->
+    <div class="card">
+      <div class="card-label">Tu categoría actual</div>
+      <div class="card-title">Seleccioná tu categoría</div>
+      <div class="cat-selector">
+        <button class="cat-btn active" onclick="selectCat(this,'A')">A</button>
+        <button class="cat-btn" onclick="selectCat(this,'B')">B</button>
+        <button class="cat-btn" onclick="selectCat(this,'C')">C</button>
+        <button class="cat-btn" onclick="selectCat(this,'D')">D</button>
+        <button class="cat-btn" onclick="selectCat(this,'E')">E</button>
+        <button class="cat-btn" onclick="selectCat(this,'F')">F</button>
+        <button class="cat-btn" onclick="selectCat(this,'G')">G</button>
+        <button class="cat-btn" onclick="selectCat(this,'H')">H</button>
+      </div>
+      <div style="font-size:13px; color:var(--muted); line-height:1.5" id="cat-info">
+        Límite anual: hasta <strong style="color:var(--text)">$2.776.406</strong><br>
+        Cuota mensual: <strong style="color:var(--yellow)">~$10.500</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN PAGOS -->
+  <div id="sec-pagos" class="section">
+    <div class="greeting">
+      <h1>Tus <span>pagos</span> 📅</h1>
+      <p>No te olvides de ninguno. Acá están todos.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Próximos vencimientos</div>
+      <div class="card-title">¿Cuándo pagar?</div>
+      <div class="pago-list">
+        <div class="pago-item" onclick="abrirModal('afip')">
+          <div class="pago-left">
+            <div class="pago-icon afip">🏛️</div>
+            <div>
+              <div class="pago-name">Monotributo AFIP</div>
+              <div class="pago-fecha">Vence el 20 de mayo</div>
+            </div>
+          </div>
+          <div class="pago-right">
+            <div class="pago-dias urgente">3 días</div>
+            <div class="pago-monto" id="monto-afip-pago">~$10.500</div>
+          </div>
+        </div>
+        <div class="pago-item" onclick="abrirModal('iibb')">
+          <div class="pago-left">
+            <div class="pago-icon iibb">🏢</div>
+            <div>
+              <div class="pago-name">Ingresos Brutos</div>
+              <div class="pago-fecha">Vence el 28 de mayo</div>
+            </div>
+          </div>
+          <div class="pago-right">
+            <div class="pago-dias proximo">11 días</div>
+            <div class="pago-monto" id="monto-iibb-pago">~3% de tus ingresos</div>
+          </div>
+        </div>
+        <div class="pago-item" onclick="abrirModal('obra')">
+          <div class="pago-left">
+            <div class="pago-icon obra">🏥</div>
+            <div>
+              <div class="pago-name">Obra Social</div>
+              <div class="pago-fecha">Incluida en monotributo</div>
+            </div>
+          </div>
+          <div class="pago-right">
+            <div class="pago-dias ok">✓ Incluida</div>
+            <div class="pago-monto">Ya está cubierta</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">¿Pagaste este mes?</div>
+      <div class="card-title">Marcá tus pagos ✅</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="toggle-pago">
+          <input type="checkbox" id="chk-afip" onchange="marcarPago('afip', this.checked)">
+          <label for="chk-afip" style="font-size:14px;cursor:pointer">Pagué el monotributo de este mes</label>
+        </div>
+        <div class="toggle-pago">
+          <input type="checkbox" id="chk-iibb" onchange="marcarPago('iibb', this.checked)">
+          <label for="chk-iibb" style="font-size:14px;cursor:pointer">Pagué ingresos brutos</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Historial</div>
+      <div class="card-title">Últimos pagos 🗂️ <span class="pill">Mayo</span></div>
+      <div class="historial">
+        <div class="hist-item">
+          <div>
+            <div class="hist-desc">Monotributo AFIP</div>
+            <div class="hist-date">20 Abril 2025</div>
+          </div>
+          <div class="hist-amount">✓ Pagado</div>
+        </div>
+        <div class="hist-item">
+          <div>
+            <div class="hist-desc">Ingresos Brutos</div>
+            <div class="hist-date">28 Abril 2025</div>
+          </div>
+          <div class="hist-amount">✓ Pagado</div>
+        </div>
+        <div class="hist-item">
+          <div>
+            <div class="hist-desc">Monotributo AFIP</div>
+            <div class="hist-date">20 Marzo 2025</div>
+          </div>
+          <div class="hist-amount">✓ Pagado</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN RESUMEN -->
+  <div id="sec-resumen" class="section">
+    <div class="greeting">
+      <h1>Tu <span>resumen</span> 📊</h1>
+      <p>Todo lo que necesitás ver de un vistazo.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Mayo 2025</div>
+      <div class="card-title">Ingresos del mes</div>
+      <div class="big-number green" id="res-total">$0</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:6px">Lo que ingresó este mes</div>
+      <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:13px;color:var(--muted)">Lo que es tuyo</span>
+          <span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--green)" id="res-tuya">$0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:13px;color:var(--muted)">Guardado para AFIP</span>
+          <span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--yellow)" id="res-afip">$0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="font-size:13px;color:var(--muted)">Guardado para IIBB</span>
+          <span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--red)" id="res-iibb">$0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Categoría</div>
+      <div class="card-title">¿Cómo vas con tu límite? 📈</div>
+      <div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:13px;color:var(--muted)">Ingresos acumulados</span>
+          <span style="font-family:'Syne',sans-serif;font-weight:700" id="acum-monto">$0</span>
+        </div>
+        <div class="barra">
+          <div class="barra-seg" id="bar-limite" style="background:var(--accent); width:0%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px">
+          <span style="font-size:12px;color:var(--muted)">0%</span>
+          <span style="font-size:12px;color:var(--muted)" id="limite-label">Límite: $2.776.406</span>
+        </div>
+      </div>
+      <div style="font-size:13px;color:var(--muted)" id="limite-consejo">Vas bien. Todavía lejos del tope.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Consejo del mes</div>
+      <div class="card-title">¿Qué hacer ahora? 🧭</div>
+      <div style="display:flex;flex-direction:column;gap:10px" id="consejos-lista">
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <span>✅</span>
+          <span style="font-size:14px;line-height:1.5">Pagá el monotributo antes del <strong>20 de mayo</strong></span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <span>💰</span>
+          <span style="font-size:14px;line-height:1.5" id="consejo-guardar">Guardá el 15-20% de tus ingresos para impuestos</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <span>📲</span>
+          <span style="font-size:14px;line-height:1.5">Activá las notificaciones para no olvidarte</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN CUENTA -->
+  <div id="sec-cuenta" class="section">
+    <div class="greeting">
+      <h1>Tu <span>cuenta</span> 👤</h1>
+      <p>Planes, funciones y más.</p>
+    </div>
+
+    <div class="pro-card">
+      <div class="pro-card-label">🔒 Monoti Pro</div>
+      <div class="pro-card-title">Llevá el control completo</div>
+      <div class="pro-card-desc">Historial, proyecciones, alertas de cambio de categoría y reportes para tu contador.</div>
+      <button class="pro-card-btn" onclick="abrirModalPro()">Ver planes desde $2.000/mes</button>
+    </div>
+
+    <div class="section-divider">¿Qué incluye cada plan?</div>
+
+    <div class="feature-list">
+      <div class="feature-item">
+        <span class="feature-icon">🔔</span>
+        <div class="feature-text">Recordatorios de pago <small>Nunca más te olvidés</small></div>
+        <span class="feature-tag gratis">GRATIS</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">🧮</span>
+        <div class="feature-text">Calculadora de impuestos <small>Cuánto guardar al cobrar</small></div>
+        <span class="feature-tag gratis">GRATIS</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">📊</span>
+        <div class="feature-text">Historial completo <small>Todos tus meses</small></div>
+        <span class="feature-tag pro">PRO</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">📈</span>
+        <div class="feature-text">Proyecciones <small>"En 3 meses cambiás de categoría"</small></div>
+        <span class="feature-tag pro">PRO</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">🤖</span>
+        <div class="feature-text">Alertas inteligentes <small>"Estás gastando más de lo normal"</small></div>
+        <span class="feature-tag pro">PRO</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">📄</span>
+        <div class="feature-text">Reportes para contador <small>PDF listos para enviar</small></div>
+        <span class="feature-tag pro">PRO</span>
+      </div>
+    </div>
+
+    <div class="section-divider" style="margin-top:24px">Sobre Monoti</div>
+    <div class="card">
+      <div style="font-size:14px;color:var(--muted);line-height:1.7">
+        Monoti nació para que los <strong style="color:var(--text)">freelancers, vendedores y trabajadores independientes</strong> no tengan más quilombos con sus impuestos.<br><br>
+        Sin tecnicismos. Sin términos contables aburridos. Solo lo que necesitás saber.
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-inicio" onclick="navTo('inicio')">
+    <span class="nav-icon">🏠</span>
+    Inicio
+  </button>
+  <button class="nav-item" id="nav-pagos" onclick="navTo('pagos')">
+    <span class="nav-icon">📅</span>
+    Pagos
+  </button>
+  <button class="nav-item" id="nav-resumen" onclick="navTo('resumen')">
+    <span class="nav-icon">📊</span>
+    Resumen
+  </button>
+  <button class="nav-item" id="nav-cuenta" onclick="navTo('cuenta')">
+    <span class="nav-icon">👤</span>
+    Cuenta
+  </button>
+</nav>
+
+<!-- MODAL DETALLES PAGO -->
+<div class="modal-overlay" id="modal-overlay" onclick="cerrarModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="cerrarModal(null, true)">✕</button>
+    <div class="modal-title" id="modal-title">Detalle</div>
+    <p id="modal-content"></p>
+    <button class="modal-btn" onclick="cerrarModal(null,true)">Entendido 👍</button>
+  </div>
+</div>
+
+<script>
+// ——— DATOS DE CATEGORÍAS ———
+const categorias = {
+  A: { limite: 2776406,  cuota: 10500, nombre: 'A (Servicios hasta $2.7M)' },
+  B: { limite: 4164610,  cuota: 13000, nombre: 'B (Servicios hasta $4.1M)' },
+  C: { limite: 5552814,  cuota: 17500, nombre: 'C (Servicios hasta $5.5M)' },
+  D: { limite: 6941021,  cuota: 24000, nombre: 'D (Servicios hasta $6.9M)' },
+  E: { limite: 8329225,  cuota: 30000, nombre: 'E (Servicios hasta $8.3M)' },
+  F: { limite: 10411531, cuota: 38000, nombre: 'F (Servicios hasta $10.4M)' },
+  G: { limite: 12493837, cuota: 47000, nombre: 'G (Servicios hasta $12.4M)' },
+  H: { limite: 16658450, cuota: 58000, nombre: 'H (Servicios hasta $16.6M)' },
+};
+
+let catActual = 'A';
+let montoActual = 0;
+
+// ——— NAVEGACIÓN ———
+function navTo(sec) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-' + sec).classList.add('active');
+  document.getElementById('nav-' + sec).classList.add('active');
+}
+
+function irAPagos() { navTo('pagos'); }
+
+// ——— CATEGORÍA ———
+function selectCat(btn, cat) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  catActual = cat;
+  const c = categorias[cat];
+  document.getElementById('cat-info').innerHTML =
+    `Límite anual: hasta <strong style="color:var(--text)">${fmt(c.limite)}</strong><br>Cuota mensual: <strong style="color:var(--yellow)">~${fmt(c.cuota)}</strong>`;
+  document.getElementById('monto-afip-pago').textContent = `~${fmt(c.cuota)}`;
+  if (montoActual > 0) calcular();
+  actualizarResumen();
+}
+
+// ——— FORMATEO ———
+function fmt(n) {
+  return '$' + Math.round(n).toLocaleString('es-AR');
+}
+
+// ——— CALCULAR ———
+function calcular() {
+  const input = document.getElementById('monto-input').value;
+  montoActual = parseFloat(input) || 0;
+
+  const c = categorias[catActual];
+  const pctAFIP = c.cuota / Math.max(montoActual, 1);
+  const porAFIP = Math.min(c.cuota, montoActual);
+  const porIIBB = montoActual * 0.03;
+  const tuya = Math.max(0, montoActual - porAFIP - porIIBB);
+
+  document.getElementById('card-desglose').style.display = montoActual > 0 ? 'block' : 'none';
+  document.getElementById('consejo-box').style.display = montoActual > 0 ? 'block' : 'none';
+
+  if (montoActual > 0) {
+    document.getElementById('val-tuya').textContent = fmt(tuya);
+    document.getElementById('val-afip').textContent = fmt(porAFIP);
+    document.getElementById('val-iibb').textContent = fmt(porIIBB);
+
+    const total = montoActual;
+    const pT = (tuya / total * 100).toFixed(1);
+    const pA = (porAFIP / total * 100).toFixed(1);
+    const pI = (porIIBB / total * 100).toFixed(1);
+    setTimeout(() => {
+      document.getElementById('bar-tuya').style.width = pT + '%';
+      document.getElementById('bar-afip').style.width = pA + '%';
+      document.getElementById('bar-iibb').style.width = pI + '%';
+    }, 50);
+
+    // Consejo dinámico
+    let consejo = '';
+    if (montoActual < 100000) {
+      consejo = `De tus <strong>${fmt(montoActual)}</strong>, guardá <strong>${fmt(porAFIP + porIIBB)}</strong> para impuestos. El resto, <strong style="color:var(--green)">${fmt(tuya)}</strong>, es tuyo 🎉`;
+    } else if (montoActual < 500000) {
+      consejo = `¡Buen mes! Guardá <strong>${fmt(porAFIP + porIIBB)}</strong> para impuestos y quedate tranquilo con <strong style="color:var(--green)">${fmt(tuya)}</strong> disponibles.`;
+    } else {
+      consejo = `Excelente ingreso. Asegurate de separar <strong>${fmt(porAFIP + porIIBB)}</strong> apenas cobres. Así nunca te agarran desprevenido.`;
+    }
+    document.getElementById('consejo-texto').innerHTML = consejo;
+  }
+
+  actualizarResumen();
+}
+
+// ——— RESUMEN ———
+function actualizarResumen() {
+  const c = categorias[catActual];
+  const porAFIP = Math.min(c.cuota, montoActual);
+  const porIIBB = montoActual * 0.03;
+  const tuya = Math.max(0, montoActual - porAFIP - porIIBB);
+
+  document.getElementById('res-total').textContent = fmt(montoActual);
+  document.getElementById('res-tuya').textContent = fmt(tuya);
+  document.getElementById('res-afip').textContent = fmt(porAFIP);
+  document.getElementById('res-iibb').textContent = fmt(porIIBB);
+
+  const acumulado = montoActual * 5; // simulamos 5 meses
+  document.getElementById('acum-monto').textContent = fmt(acumulado);
+  document.getElementById('limite-label').textContent = 'Límite: ' + fmt(c.limite);
+
+  const pct = Math.min(100, (acumulado / c.limite * 100)).toFixed(0);
+  setTimeout(() => {
+    document.getElementById('bar-limite').style.width = pct + '%';
+  }, 100);
+
+  let limConsejo = '';
+  if (pct < 50) limConsejo = '✅ Vas bien. Todavía lejos del tope.';
+  else if (pct < 80) limConsejo = '⚠️ Ya vas por el ' + pct + '%. Ojo con los ingresos.';
+  else limConsejo = '🚨 Estás cerca del límite. Consultá si conviene recategorizar.';
+  document.getElementById('limite-consejo').textContent = limConsejo;
+
+  if (montoActual > 0) {
+    document.getElementById('consejo-guardar').innerHTML =
+      `Guardá <strong>${fmt(porAFIP + porIIBB)}</strong> ni bien cobres y no los toques`;
+  }
+}
+
+// ——— PAGOS ———
+function marcarPago(tipo, checked) {
+  // Feedback visual
+  const chk = document.getElementById('chk-' + tipo);
+  const lbl = chk.nextElementSibling;
+  if (checked) {
+    lbl.style.color = 'var(--green)';
+    lbl.textContent = tipo === 'afip' ? '✅ Monotributo pagado. ¡Genio!' : '✅ Ingresos Brutos pagado. ¡Todo en orden!';
+  } else {
+    lbl.style.color = '';
+    lbl.textContent = tipo === 'afip' ? 'Pagué el monotributo de este mes' : 'Pagué ingresos brutos';
+  }
+}
+
+// ——— MODALES ———
+const modalInfo = {
+  afip: {
+    title: '🏛️ Monotributo AFIP',
+    content: 'El monotributo se paga todos los meses, antes del día 20. Podés hacerlo desde la app Mi AFIP, por home banking o en Rapipago/Pago Fácil. Si te olvidás más de dos meses seguidos, AFIP puede darte de baja automáticamente.'
+  },
+  iibb: {
+    title: '🏢 Ingresos Brutos',
+    content: 'Ingresos Brutos es un impuesto provincial. El porcentaje varía según tu provincia (suele ser entre 1.5% y 3% de tus ingresos). Pagás por Rentas de tu provincia. Es mensual y vence generalmente a fin de mes.'
+  },
+  obra: {
+    title: '🏥 Obra Social',
+    content: 'La obra social está incluida en tu cuota de monotributo. Podés elegir entre varias opciones de OSde y similares. Al pagar el monotributo, automáticamente cubrís tu obra social. ¡No necesitás pagar nada extra!'
+  }
+};
+
+function abrirModal(tipo) {
+  const info = modalInfo[tipo];
+  document.getElementById('modal-title').textContent = info.title;
+  document.getElementById('modal-content').textContent = info.content;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function abrirModalPro() {
+  document.getElementById('modal-title').textContent = '🔒 Monoti Pro';
+  document.getElementById('modal-content').textContent =
+    'Con Pro desbloqueás: historial completo de ingresos y pagos, proyecciones de cuándo cambiás de categoría, alertas inteligentes ("este mes estás ganando más que el anterior"), y reportes en PDF para tu contador. Todo desde $2.000/mes.';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function cerrarModal(event, forzar) {
+  if (forzar || event.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+}
+
+// Init
+actualizarResumen();
+</script>
+</body>
+</html>
